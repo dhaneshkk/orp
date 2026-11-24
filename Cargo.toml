@@ -12,13 +12,21 @@ repository = "https://github.com/fbilhaut/orp"
 documentation = "https://docs.rs/fbilhaut/orp"
 
 [dependencies]
-ort = { version = "=2.0.0-rc.9" }
+# `default-features = false`: ort's defaults include `download-binaries`, which
+# fetches ONNX Runtime from parcel.pyke.io at build time; Cargo features are
+# additive, so if any crate in the graph keeps them, every build downloads.
+# The download is now this crate's `download-binaries` feature instead.
+ort = { version = "=2.0.0-rc.9", default-features = false, features = ["ndarray", "half"] }
 ort-sys = { version = "=2.0.0-rc.9", default-features = false } # see https://github.com/pykeio/ort/issues/399
 ndarray = { version = "0.16.0" }
 composable = { version = "1.0.0" }
 
 [features]
-default = []
+# On by default, so `orp` builds as before. Turn default features off (and
+# use `load-dynamic`, or point ORT_LIB_LOCATION at an ONNX Runtime build) for
+# a build that needs no network access.
+default = ["download-binaries"]
+download-binaries = ["ort/download-binaries", "ort/copy-dylibs"]
 load-dynamic = ["ort/load-dynamic"]
 cuda = ["ort/cuda"]
 tensorrt = ["ort/tensorrt"]
